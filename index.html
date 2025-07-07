@@ -57,6 +57,13 @@
             position: relative;
             overflow: hidden;
             border: 2px solid var(--glow-blue); /* Subtle border glow */
+
+            /* Landscape optimization */
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            min-height: 500px; /* Ensure sufficient height for content */
         }
 
         /* Subtle background grid pattern for tech look */
@@ -78,6 +85,8 @@
         .keypad-container > * { /* Ensure content is above the grid pattern */
             position: relative;
             z-index: 1;
+            width: 100%; /* Ensure content fills available width */
+            max-width: 550px; /* Limit internal content width for better readability */
         }
 
         .header {
@@ -158,6 +167,11 @@
             transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
             box-shadow: 0 0 15px var(--glow-blue); /* Button glow */
             letter-spacing: 1px;
+            min-width: 250px; /* Ensure button doesn't shrink too much */
+            height: 60px; /* Fixed height for consistent look */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .submit-btn:hover {
@@ -211,20 +225,52 @@
             box-shadow-color: var(--warning-orange);
         }
 
-        .correct-answer {
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: 700;
-            font-size: 1.3em;
-            margin-top: 10px;
-            text-shadow: 0 0 5px var(--text-accent);
-        }
+        /* Responsive adjustments for smaller screens (e.g., phones in portrait) */
+        @media (max-width: 768px) {
+            .keypad-container {
+                padding: 30px 20px;
+                max-width: 400px;
+            }
 
+            .header {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .question-display {
+                padding: 25px 15px;
+                font-size: 1.4em;
+                margin-bottom: 25px;
+            }
+
+            .cipher-text {
+                font-size: 1.6em;
+                letter-spacing: 2px;
+            }
+
+            .answer-input {
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+
+            .submit-btn {
+                padding: 15px 25px;
+                font-size: 1.2em;
+                min-width: unset;
+                height: unset;
+            }
+
+            .feedback-box {
+                padding: 20px;
+                font-size: 1em;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="keypad-container">
         <div class="header">
-             ACCESS: CIPHER REQUIRED
+            SYSTEM ACCESS: CIPHER REQUIRED
         </div>
 
         <div class="tries-counter" id="triesCounter">
@@ -247,8 +293,7 @@
     </div>
 
     <script>
-        const correctAnswer = "MANIPULATION"; // The correct answer for decryption
-        const cipherKey = "MEMORY"; // Key for hints, not displayed on screen
+        const correctAnswer = "MANIPULATION"; // The correct answer (still needed for comparison)
 
         const userAnswerInput = document.getElementById('userAnswer');
         const submitBtn = document.getElementById('submitBtn');
@@ -275,6 +320,9 @@
         updateTriesDisplay();
 
         submitBtn.addEventListener('click', () => {
+            if (submitBtn.disabled) { // Prevent interaction if button is disabled
+                return;
+            }
             if (triesRemaining === 0) {
                 return; // Prevent submission if no tries left
             }
@@ -287,12 +335,11 @@
                 feedbackBox.classList.add('show', 'correct');
                 feedbackBox.innerHTML = `
                     <p>🟢 ACCESS GRANTED!</p>
-                    <p>Decrypted Sequence: <span class="correct-answer">${correctAnswer}</span></p>
                     <p>System Unlocked.</p>
                 `;
                 submitBtn.disabled = true;
                 userAnswerInput.disabled = true;
-                submitBtn.textContent = "SYSTEM UNLOCKED";
+                submitBtn.textContent = "SUCCESSFUL AUTHENTICATION"; // Change button text
                 submitBtn.style.backgroundColor = 'var(--correct-green)';
                 submitBtn.style.boxShadow = '0 0 25px var(--correct-green)';
             } else {
@@ -304,18 +351,28 @@
                     feedbackBox.innerHTML = `
                         <p>🔴 ACCESS DENIED!</p>
                         <p>Incorrect Sequence. Re-authenticate.</p>
-                        <p>Hint: Remember the key for decryption is '${cipherKey}' and modulo 26 arithmetic.</p>
                     `;
+                    submitBtn.textContent = "FAILED AUTHENTICATION"; // Change button text
+                    submitBtn.style.backgroundColor = 'var(--incorrect-red)';
+                    submitBtn.style.boxShadow = '0 0 15px var(--incorrect-red)';
+                    // Reset button appearance after a short delay for next attempt
+                    setTimeout(() => {
+                        if (triesRemaining > 0) { // Only reset if still has tries
+                            submitBtn.textContent = "AUTHENTICATE";
+                            submitBtn.style.backgroundColor = 'var(--glow-blue)';
+                            submitBtn.style.boxShadow = '0 0 15px var(--glow-blue)';
+                        }
+                    }, 1500); // 1.5 seconds delay
                 } else {
                     // No tries left
                     feedbackBox.classList.add('show', 'attempts-exhausted');
                     feedbackBox.innerHTML = `
                         <p>🚫 ATTEMPTS EXHAUSTED!</p>
-                        <p>System Locked. Decrypted Sequence: <span class="correct-answer">${correctAnswer}</span></p>
+                        <p>System Locked.</p>
                     `;
                     submitBtn.disabled = true;
                     userAnswerInput.disabled = true;
-                    submitBtn.textContent = "SYSTEM LOCKED";
+                    submitBtn.textContent = "SYSTEM LOCKED"; // Final button text
                     submitBtn.style.backgroundColor = 'var(--incorrect-red)';
                     submitBtn.style.boxShadow = '0 0 25px var(--incorrect-red)';
                 }
