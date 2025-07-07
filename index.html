@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>vigenere</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Keypad Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Keypad & Glow Colors */
+            --keypad-bg-dark: #1a1a2e; /* Very dark background */
+            --keypad-card-dark: #2a2a4a; /* Slightly lighter for main elements */
+            --glow-blue: #00bcd4; /* Cyan/Blue for glow */
+            --glow-purple: #8e24aa; /* Deep purple for accent */
+            --text-light: #e0e0e0;
+            --text-accent: #a9fef7; /* Brighter text for glow effect */
+            --correct-green: #4CAF50;
+            --incorrect-red: #EF5350;
+            --warning-orange: #FF9800; /* For try counter */
+
+            /* Gradient for a subtle "tech" feel */
+            --header-gradient: linear-gradient(90deg, var(--glow-blue) 0%, var(--glow-purple) 100%);
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif; /* Techy font */
+            background-color: var(--keypad-bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-light);
+            overflow: hidden; /* Hide potential scrollbar from glow effects */
+        }
+
+        .keypad-container {
+            background-color: var(--keypad-card-dark);
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(0, 188, 212, 0.4); /* Stronger glow shadow */
+            width: 100%;
+            max-width: 650px; /* Slightly wider for a more substantial keypad */
+            padding: 45px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--glow-blue); /* Subtle border glow */
+        }
+
+        /* Subtle background grid pattern for tech look */
+        .keypad-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px; /* Adjust size of grid cells */
+            z-index: 0;
+            opacity: 0.1;
+        }
+
+        .keypad-container > * { /* Ensure content is above the grid pattern */
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2em; /* Larger header */
+            margin-bottom: 30px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 188, 212, 0.5); /* Header glow */
+        }
+
+        .tries-counter {
+            font-size: 1em;
+            color: var(--warning-orange);
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
+        }
+
+        .question-display {
+            background-color: rgba(0, 0, 0, 0.3); /* Transparent dark background */
+            color: var(--text-accent); /* Bright text */
+            padding: 35px 25px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+            font-size: 1.6em; /* Larger cipher text */
+            font-weight: 700;
+            line-height: 1.5;
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.3); /* Outer glow */
+            border: 1px solid var(--glow-blue); /* Thin border glow */
+        }
+
+        .cipher-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.8em;
+            letter-spacing: 3px;
+            display: block;
+            margin-top: 15px;
+            font-weight: 900;
+            text-shadow: 0 0 8px var(--glow-blue); /* Text glow */
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .answer-input {
+            width: calc(100% - 50px);
+            padding: 18px 25px;
+            border: 2px solid var(--glow-purple); /* Purple border */
+            border-radius: 12px;
+            font-size: 1.2em;
+            background-color: rgba(42, 42, 74, 0.7); /* Match keypad background with transparency */
+            color: var(--text-accent); /* Light text for input */
+            outline: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(142, 36, 170, 0.3); /* Input glow */
+        }
+
+        .answer-input:focus {
+            border-color: var(--glow-blue); /* Blue on focus */
+            box-shadow: 0 0 15px var(--glow-blue), inset 0 0 5px var(--glow-blue); /* Stronger glow on focus */
+        }
+
+        .submit-btn {
+            background-color: var(--glow-blue);
+            color: var(--keypad-bg-dark); /* Dark text on bright button */
+            border: none;
+            padding: 18px 35px;
+            border-radius: 12px;
+            font-size: 1.4em; /* Larger button */
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 15px var(--glow-blue); /* Button glow */
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            background-color: #00e5ff; /* Brighter blue on hover */
+            box-shadow: 0 0 25px var(--glow-blue), 0 0 40px var(--glow-blue); /* More intense glow */
+        }
+
+        .submit-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 10px var(--glow-blue);
+        }
+
+        .feedback-box {
+            margin-top: 35px;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 700;
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.5s ease-in-out;
+            border: 2px solid; /* Border will be colored by JS */
+            box-shadow: 0 0 15px; /* Glow will be colored by JS */
+        }
+
+        .feedback-box.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-box.correct {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--correct-green);
+            border-color: var(--correct-green);
+            box-shadow-color: var(--correct-green);
+        }
+
+        .feedback-box.incorrect {
+            background-color: rgba(239, 83, 80, 0.2);
+            color: var(--incorrect-red);
+            border-color: var(--incorrect-red);
+            box-shadow-color: var(--incorrect-red);
+        }
+
+        .feedback-box.attempts-exhausted {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--warning-orange);
+            border-color: var(--warning-orange);
+            box-shadow-color: var(--warning-orange);
+        }
+
+        .correct-answer {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 700;
+            font-size: 1.3em;
+            margin-top: 10px;
+            text-shadow: 0 0 5px var(--text-accent);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="keypad-container">
+        <div class="header">
+             ACCESS: CIPHER REQUIRED
+        </div>
+
+        <div class="tries-counter" id="triesCounter">
+            ATTEMPTS REMAINING: 3
+        </div>
+
+        <div class="question-display">
+            INPUT REQUIRED:<br>
+            <span class="cipher-text">YEZWGSXEFWFL</span>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="userAnswer" class="answer-input" placeholder="ENTER DECRYPTION...">
+        </div>
+
+        <button id="submitBtn" class="submit-btn">AUTHENTICATE</button>
+
+        <div id="feedback" class="feedback-box">
+            </div>
+    </div>
+
+    <script>
+        const correctAnswer = "MANIPULATION"; // The correct answer for decryption
+        const cipherKey = "MEMORY"; // Key for hints, not displayed on screen
+
+        const userAnswerInput = document.getElementById('userAnswer');
+        const submitBtn = document.getElementById('submitBtn');
+        const feedbackBox = document.getElementById('feedback');
+        const triesCounterDisplay = document.getElementById('triesCounter');
+
+        let triesRemaining = 3; // Initialize try counter
+
+        function updateTriesDisplay() {
+            triesCounterDisplay.textContent = `ATTEMPTS REMAINING: ${triesRemaining}`;
+            if (triesRemaining <= 1) {
+                triesCounterDisplay.style.color = 'var(--incorrect-red)'; // Red for last try
+                triesCounterDisplay.style.textShadow = '0 0 5px rgba(220, 53, 69, 0.7)';
+            } else if (triesRemaining === 2) {
+                triesCounterDisplay.style.color = 'var(--warning-orange)'; // Orange for 2 tries
+                triesCounterDisplay.style.textShadow = '0 0 5px rgba(255, 152, 0, 0.5)';
+            } else {
+                 triesCounterDisplay.style.color = 'var(--warning-orange)'; // Default for 3 tries
+                 triesCounterDisplay.style.textShadow = '0 0 5px rgba(255, 152, 0, 0.5)';
+            }
+        }
+
+        // Initial display update
+        updateTriesDisplay();
+
+        submitBtn.addEventListener('click', () => {
+            if (triesRemaining === 0) {
+                return; // Prevent submission if no tries left
+            }
+
+            const userAttempt = userAnswerInput.value.toUpperCase().trim();
+
+            feedbackBox.classList.remove('show', 'correct', 'incorrect', 'attempts-exhausted'); // Reset all feedback classes
+
+            if (userAttempt === correctAnswer) {
+                feedbackBox.classList.add('show', 'correct');
+                feedbackBox.innerHTML = `
+                    <p>🟢 ACCESS GRANTED!</p>
+                    <p>Decrypted Sequence: <span class="correct-answer">${correctAnswer}</span></p>
+                    <p>System Unlocked.</p>
+                `;
+                submitBtn.disabled = true;
+                userAnswerInput.disabled = true;
+                submitBtn.textContent = "SYSTEM UNLOCKED";
+                submitBtn.style.backgroundColor = 'var(--correct-green)';
+                submitBtn.style.boxShadow = '0 0 25px var(--correct-green)';
+            } else {
+                triesRemaining--;
+                updateTriesDisplay(); // Update display immediately
+
+                if (triesRemaining > 0) {
+                    feedbackBox.classList.add('show', 'incorrect');
+                    feedbackBox.innerHTML = `
+                        <p>🔴 ACCESS DENIED!</p>
+                        <p>Incorrect Sequence. Re-authenticate.</p>
+                        <p>Hint: Remember the key for decryption is '${cipherKey}' and modulo 26 arithmetic.</p>
+                    `;
+                } else {
+                    // No tries left
+                    feedbackBox.classList.add('show', 'attempts-exhausted');
+                    feedbackBox.innerHTML = `
+                        <p>🚫 ATTEMPTS EXHAUSTED!</p>
+                        <p>System Locked. Decrypted Sequence: <span class="correct-answer">${correctAnswer}</span></p>
+                    `;
+                    submitBtn.disabled = true;
+                    userAnswerInput.disabled = true;
+                    submitBtn.textContent = "SYSTEM LOCKED";
+                    submitBtn.style.backgroundColor = 'var(--incorrect-red)';
+                    submitBtn.style.boxShadow = '0 0 25px var(--incorrect-red)';
+                }
+            }
+        });
+
+        // Optional: Allow submitting with Enter key
+        userAnswerInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !submitBtn.disabled) {
+                submitBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
